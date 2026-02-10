@@ -73,29 +73,32 @@ function wrapInWpShell(title, bodyContent) {
 // Initialize Stripe
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Initialize Turso (cloud SQLite)
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+// Initialize Turso (cloud SQLite) — optional, pages render without it
+let db = null;
+if (process.env.TURSO_DATABASE_URL) {
+  db = createClient({
+    url: process.env.TURSO_DATABASE_URL,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  });
 
-// Create table on startup
-(async () => {
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS registrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      first_name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      num_tickets INTEGER NOT NULL,
-      total_amount INTEGER NOT NULL,
-      stripe_session_id TEXT,
-      payment_status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-})();
+  // Create table on startup
+  (async () => {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS registrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        first_name TEXT NOT NULL,
+        last_name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        num_tickets INTEGER NOT NULL,
+        total_amount INTEGER NOT NULL,
+        stripe_session_id TEXT,
+        payment_status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  })();
+}
 
 // Stripe webhook needs raw body — must be before express.json()
 app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
