@@ -13,6 +13,7 @@ const TICKET_PRICE = 5000; // $50.00 in cents
 // WP Shell — fetch header/footer from main site
 // =============================================
 let wpShell = { head: '', header: '', footer: '', bodyClass: '', ready: false };
+let wpShellPromise = null;
 
 async function fetchWpShell() {
   try {
@@ -47,12 +48,12 @@ async function fetchWpShell() {
   }
 }
 
-// Fetch on startup, refresh every 30 minutes
-fetchWpShell();
-setInterval(fetchWpShell, 30 * 60 * 1000);
+// Start fetch on load; store promise so routes can await it
+wpShellPromise = fetchWpShell();
 
-// Helper: wrap page content in WP shell
-function wrapInWpShell(title, bodyContent) {
+// Helper: wrap page content in WP shell (awaits initial fetch if needed)
+async function wrapInWpShell(title, bodyContent) {
+  if (!wpShell.ready) await wpShellPromise;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -138,8 +139,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
 
 // Homepage — ticket purchase page wrapped in WP shell
-app.get('/', (req, res) => {
-  res.send(wrapInWpShell('MWS Hockey Fundraiser — Quinnipiac vs Colgate', HOME_CONTENT));
+app.get('/', async (req, res) => {
+  res.send(await wrapInWpShell('MWS Hockey Fundraiser — Quinnipiac vs Colgate', HOME_CONTENT));
 });
 
 // Create Checkout Session
@@ -229,12 +230,12 @@ app.get('/success', async (req, res) => {
     }
   }
 
-  res.send(wrapInWpShell('Payment Successful — MWS Hockey Fundraiser', SUCCESS_CONTENT));
+  res.send(await wrapInWpShell('Payment Successful — MWS Hockey Fundraiser', SUCCESS_CONTENT));
 });
 
 // Cancel page
-app.get('/cancel', (req, res) => {
-  res.send(wrapInWpShell('Payment Cancelled — MWS Hockey Fundraiser', CANCEL_CONTENT));
+app.get('/cancel', async (req, res) => {
+  res.send(await wrapInWpShell('Payment Cancelled — MWS Hockey Fundraiser', CANCEL_CONTENT));
 });
 
 // Admin dashboard — HTTP Basic Auth
