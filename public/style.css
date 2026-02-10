@@ -6,13 +6,12 @@
    (the main site loads a global kit CSS we don't have)
    ============================================= */
 
-/* Header */
+/* Header — dark navy to match main site */
 .elementor-location-header {
-  background-color: #fff;
+  background-color: #232842;
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid #eee;
 }
 
 .elementor-location-header .elementor-section {
@@ -52,7 +51,7 @@
   font-family: 'Poppins', sans-serif;
   font-size: 15px;
   font-weight: 600;
-  color: #111;
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   transition: color 0.2s;
   white-space: nowrap;
@@ -60,6 +59,25 @@
 
 .elementor-nav-menu--main .elementor-item:hover {
   color: #cda33b;
+}
+
+/* Donate button in nav */
+.btn-donate-nav {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #cda33b;
+  color: #fff !important;
+  border-radius: 6px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 8px;
+  transition: background-color 0.2s;
+}
+
+.btn-donate-nav:hover {
+  background-color: #c39931;
 }
 
 /* Dropdown indicator */
@@ -216,7 +234,7 @@
     background: none;
     border: none;
     font-size: 24px;
-    color: #232842;
+    color: #fff;
   }
 
   .elementor-menu-toggle__icon--close {
