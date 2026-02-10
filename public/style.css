@@ -1,6 +1,13 @@
 /* MWS Hockey Fundraiser — Page Content Styles */
 /* Header & footer come from the WP shell (fetched dynamically) */
 
+/* Elementor sticky header needs JS to add --active class for bg color.
+   We apply the background unconditionally since we don't load Elementor JS. */
+.elementor-location-header .elementor-element-8151066 {
+  background-color: #232842;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
 :root {
   --gold: #cda33b;
   --gold-hover: #c39931;

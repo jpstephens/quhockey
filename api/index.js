@@ -20,16 +20,21 @@ async function fetchWpShell() {
     const res = await fetch('https://michaelwilliamsscholarship.com/');
     const html = await res.text();
 
-    // Extract body classes so Elementor kit selectors work
+    // Extract body classes — remove admin-bar (no WP toolbar here)
     const bodyMatch = html.match(/<body[^>]*class="([^"]*)"/i);
-    wpShell.bodyClass = bodyMatch ? bodyMatch[1] : '';
+    wpShell.bodyClass = bodyMatch
+      ? bodyMatch[1].replace(/\badmin-bar\b/g, '').replace(/\s+/g, ' ').trim()
+      : '';
 
     // Extract <head> content (stylesheets + inline styles)
     const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
     const headContent = headMatch ? headMatch[1] : '';
 
     // Pull all <link rel="stylesheet"> and <style> tags from head
-    const linkTags = headContent.match(/<link[^>]+rel=['"]stylesheet['"][^>]*>/gi) || [];
+    // Skip admin-bar CSS and homepage-specific post CSS (post-4321)
+    const skipPatterns = /admin-bar|post-4321/i;
+    const linkTags = (headContent.match(/<link[^>]+rel=['"]stylesheet['"][^>]*>/gi) || [])
+      .filter(tag => !skipPatterns.test(tag));
     const styleTags = headContent.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
     wpShell.head = linkTags.join('\n') + '\n' + styleTags.join('\n');
 
