@@ -2,12 +2,70 @@ require('dotenv').config();
 
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const { createClient } = require('@libsql/client');
 const Stripe = require('stripe');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const TICKET_PRICE = 5000; // $50.00 in cents
+
+// =============================================
+// WP Shell — fetch header/footer from main site
+// =============================================
+let wpShell = { head: '', header: '', footer: '', ready: false };
+
+async function fetchWpShell() {
+  try {
+    const res = await fetch('https://michaelwilliamsscholarship.com/');
+    const html = await res.text();
+
+    // Extract <head> content (stylesheets + inline styles)
+    const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+    const headContent = headMatch ? headMatch[1] : '';
+
+    // Pull all <link rel="stylesheet"> and <style> tags from head
+    const linkTags = headContent.match(/<link[^>]+rel=['"]stylesheet['"][^>]*>/gi) || [];
+    const styleTags = headContent.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
+    wpShell.head = linkTags.join('\n') + '\n' + styleTags.join('\n');
+
+    // Extract first <header> ... </header> (the Elementor nav)
+    const headerMatch = html.match(/<header data-elementor-type="header"[\s\S]*?<\/header>/i);
+    wpShell.header = headerMatch ? headerMatch[0] : '';
+
+    // Extract <footer> ... </footer> (the Elementor footer)
+    const footerMatch = html.match(/<footer data-elementor-type="footer"[\s\S]*?<\/footer>/i);
+    wpShell.footer = footerMatch ? footerMatch[0] : '';
+
+    wpShell.ready = true;
+    console.log('WP shell loaded successfully');
+  } catch (err) {
+    console.error('Failed to fetch WP shell:', err.message);
+  }
+}
+
+// Fetch on startup, refresh every 30 minutes
+fetchWpShell();
+setInterval(fetchWpShell, 30 * 60 * 1000);
+
+// Helper: wrap page content in WP shell
+function wrapInWpShell(title, bodyContent) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  ${wpShell.head}
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="elementor-default elementor-kit-4330">
+  ${wpShell.header}
+  ${bodyContent}
+  ${wpShell.footer}
+</body>
+</html>`;
+}
 
 // Initialize Stripe
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
@@ -70,8 +128,14 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Serve static assets (CSS, images, etc.) but NOT HTML pages
+app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
+
+// Homepage — ticket purchase page wrapped in WP shell
+app.get('/', (req, res) => {
+  const content = fs.readFileSync(path.join(__dirname, '..', 'public', 'content-home.html'), 'utf8');
+  res.send(wrapInWpShell('MWS Hockey Fundraiser — Quinnipiac vs Colgate', content));
+});
 
 // Create Checkout Session
 app.post('/create-checkout-session', async (req, res) => {
@@ -160,12 +224,14 @@ app.get('/success', async (req, res) => {
     }
   }
 
-  res.sendFile(path.join(__dirname, '..', 'public', 'success.html'));
+  const content = fs.readFileSync(path.join(__dirname, '..', 'public', 'content-success.html'), 'utf8');
+  res.send(wrapInWpShell('Payment Successful — MWS Hockey Fundraiser', content));
 });
 
 // Cancel page
 app.get('/cancel', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'cancel.html'));
+  const content = fs.readFileSync(path.join(__dirname, '..', 'public', 'content-cancel.html'), 'utf8');
+  res.send(wrapInWpShell('Payment Cancelled — MWS Hockey Fundraiser', content));
 });
 
 // Admin dashboard — HTTP Basic Auth
