@@ -1,15 +1,12 @@
 /* MWS Hockey Fundraiser — Page Content Styles */
 /* Header & footer come from the WP shell (fetched dynamically) */
 
-/* Elementor sticky header needs JS for --active class and sticky behavior.
-   We apply background + sticky positioning since we don't load Elementor JS. */
-.elementor-location-header {
-  position: sticky;
+/* Elementor sets the header section to position:absolute (expects JS to convert
+   to fixed + add a spacer). Override to sticky so it stays in flow and sticks. */
+.elementor-11800 .elementor-element.elementor-element-8151066 {
+  position: sticky !important;
   top: 0;
   z-index: 9999;
-}
-
-.elementor-location-header .elementor-element-8151066 {
   background-color: #232842;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
