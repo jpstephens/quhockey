@@ -13,12 +13,16 @@ const TICKET_PRICE = 5000; // $50.00 in cents
 // =============================================
 // WP Shell — fetch header/footer from main site
 // =============================================
-let wpShell = { head: '', header: '', footer: '', ready: false };
+let wpShell = { head: '', header: '', footer: '', bodyClass: '', ready: false };
 
 async function fetchWpShell() {
   try {
     const res = await fetch('https://michaelwilliamsscholarship.com/');
     const html = await res.text();
+
+    // Extract body classes so Elementor kit selectors work
+    const bodyMatch = html.match(/<body[^>]*class="([^"]*)"/i);
+    wpShell.bodyClass = bodyMatch ? bodyMatch[1] : '';
 
     // Extract <head> content (stylesheets + inline styles)
     const headMatch = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
@@ -59,7 +63,7 @@ function wrapInWpShell(title, bodyContent) {
   ${wpShell.head}
   <link rel="stylesheet" href="/style.css">
 </head>
-<body class="elementor-default elementor-kit-4330">
+<body class="${wpShell.bodyClass}">
   ${wpShell.header}
   ${bodyContent}
   ${wpShell.footer}
