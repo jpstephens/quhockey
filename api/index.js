@@ -57,18 +57,27 @@ async function fetchWpShell() {
 wpShellPromise = fetchWpShell();
 
 // Helper: wrap page content in WP shell (awaits initial fetch if needed)
-async function wrapInWpShell(title, bodyContent) {
+async function wrapInWpShell(title, bodyContent, meta = {}) {
   if (!wpShell.ready) await wpShellPromise;
+  const description = meta.description || 'Purchase tickets for the MWS Hockey Fundraiser — Quinnipiac vs Colgate. All proceeds benefit the Michael Williams Scholarship.';
+  const ogImage = meta.ogImage || '/images/hero.jpeg';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta name="theme-color" content="#232842">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${ogImage}">
+  <meta property="og:type" content="website">
   ${wpShell.head}
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="${wpShell.bodyClass}">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   ${wpShell.header}
   ${bodyContent}
   ${wpShell.footer}
@@ -168,12 +177,12 @@ app.post('/create-checkout-session', async (req, res) => {
 
     // Validate
     if (!first_name || !last_name || !email || !phone || !num_tickets) {
-      return res.status(400).send('All fields are required.');
+      return res.redirect('/?error=fields');
     }
 
     const tickets = parseInt(num_tickets, 10);
-    if (isNaN(tickets) || tickets < 1 || tickets > 20) {
-      return res.status(400).send('Please select between 1 and 20 tickets.');
+    if (isNaN(tickets) || tickets < 1 || tickets > 10) {
+      return res.redirect('/?error=tickets');
     }
 
     const totalAmount = tickets * TICKET_PRICE;
@@ -203,7 +212,7 @@ app.post('/create-checkout-session', async (req, res) => {
             currency: 'usd',
             product_data: {
               name: 'MWS Hockey Fundraiser Ticket',
-              description: 'Quinnipiac vs Colgate — Feb 21, 2025',
+              description: 'Quinnipiac vs Colgate — Feb 21, 2026',
             },
             unit_amount: TICKET_PRICE,
           },
@@ -231,7 +240,7 @@ app.post('/create-checkout-session', async (req, res) => {
     res.redirect(303, session.url);
   } catch (err) {
     console.error('Error creating checkout session:', err);
-    res.status(500).send('Something went wrong. Please try again.');
+    res.redirect('/?error=server');
   }
 });
 
@@ -322,7 +331,7 @@ app.get('/admin', async (req, res) => {
 
 // Page content templates inlined (Vercel serverless can't access public/ via fs)
 const HOME_CONTENT = `
-<main class="page-content">
+<main id="main-content" class="page-content">
   <div class="left-column">
     <div class="hero-image">
       <img src="/images/hero.jpeg" alt="Quinnipiac Hockey Mascot">
@@ -362,20 +371,20 @@ const HOME_CONTENT = `
         <div class="form-row">
           <div class="form-group">
             <label for="first_name">First Name</label>
-            <input type="text" id="first_name" name="first_name" required placeholder="First name">
+            <input type="text" id="first_name" name="first_name" required placeholder="First name" autocomplete="given-name">
           </div>
           <div class="form-group">
             <label for="last_name">Last Name</label>
-            <input type="text" id="last_name" name="last_name" required placeholder="Last name">
+            <input type="text" id="last_name" name="last_name" required placeholder="Last name" autocomplete="family-name">
           </div>
         </div>
         <div class="form-group">
           <label for="email">Email Address</label>
-          <input type="email" id="email" name="email" required placeholder="you@example.com">
+          <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
         </div>
         <div class="form-group">
           <label for="phone">Phone Number</label>
-          <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
+          <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567" autocomplete="tel">
         </div>
         <div class="form-group">
           <label for="num_tickets">Number of Tickets</label>
@@ -396,6 +405,7 @@ const HOME_CONTENT = `
           <span class="total-label">Total</span>
           <span class="total-amount" id="totalAmount" aria-live="polite">$50.00</span>
         </div>
+        <div id="formError" class="form-error" role="alert" hidden></div>
         <button type="submit" class="btn-purchase">Purchase Tickets</button>
       </form>
     </div>
@@ -409,30 +419,49 @@ const HOME_CONTENT = `
     const total = qty * 50;
     totalDisplay.textContent = '$' + total.toFixed(2);
   });
-  document.getElementById('ticketForm').addEventListener('submit', function () {
-    const btn = this.querySelector('.btn-purchase');
+
+  const form = document.getElementById('ticketForm');
+  const btn = form.querySelector('.btn-purchase');
+  form.addEventListener('submit', function () {
     btn.disabled = true;
     btn.textContent = 'Processing...';
   });
+
+  // Re-enable button if user navigates back
+  window.addEventListener('pageshow', function () {
+    btn.disabled = false;
+    btn.textContent = 'Purchase Tickets';
+  });
+
+  // Show server-side error if redirected back with ?error=
+  const params = new URLSearchParams(window.location.search);
+  const err = params.get('error');
+  if (err) {
+    const el = document.getElementById('formError');
+    const msgs = { fields: 'Please fill in all fields.', tickets: 'Please select between 1 and 10 tickets.', server: 'Something went wrong. Please try again.' };
+    el.textContent = msgs[err] || msgs.server;
+    el.hidden = false;
+    history.replaceState(null, '', '/');
+  }
 </script>`;
 
 const SUCCESS_CONTENT = `
-<div class="result-page">
+<main id="main-content" class="result-page">
   <div class="icon" role="img" aria-label="Success">&#10003;</div>
   <h1>You're In!</h1>
   <p>Your tickets have been purchased successfully. Thank you for supporting the Michael Williams Scholarship!</p>
   <p>You'll receive a confirmation email with your receipt shortly.</p>
   <a href="/" class="btn-home">Back to Home</a>
-</div>`;
+</main>`;
 
 const CANCEL_CONTENT = `
-<div class="result-page">
+<main id="main-content" class="result-page">
   <div class="icon" role="img" aria-label="Cancelled">&#10007;</div>
   <h1>Payment Cancelled</h1>
   <p>Your payment was not completed. No charges were made.</p>
   <p>If you'd still like to purchase tickets, head back and try again.</p>
   <a href="/" class="btn-home">Back to Tickets</a>
-</div>`;
+</main>`;
 
 // Admin template inlined (avoids fs.readFileSync issues on serverless)
 const ADMIN_TEMPLATE = `<!DOCTYPE html>
@@ -447,7 +476,7 @@ const ADMIN_TEMPLATE = `<!DOCTYPE html>
   <div class="admin-header">
     <h1>MWS Hockey — Registrations</h1>
   </div>
-  <div class="admin-body">
+  <main class="admin-body">
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value">{{totalRegistrations}}</div>
@@ -462,23 +491,26 @@ const ADMIN_TEMPLATE = `<!DOCTYPE html>
         <div class="stat-label">Revenue</div>
       </div>
     </div>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Tickets</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{rows}}
-      </tbody>
-    </table>
-  </div>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <caption>All ticket registrations</caption>
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Tickets</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Status</th>
+            <th scope="col">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{rows}}
+        </tbody>
+      </table>
+    </div>
+  </main>
 </body>
 </html>`;
 

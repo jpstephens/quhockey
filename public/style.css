@@ -18,6 +18,7 @@ body { margin: 0; padding: 0; }
 :root {
   --gold: #cda33b;
   --gold-hover: #c39931;
+  --gold-text: #8a6d1b; /* WCAG AA on white (4.7:1 contrast) */
   --navy: #232842;
   --accent-blue: #002866;
   --text: #333;
@@ -25,6 +26,26 @@ body { margin: 0; padding: 0; }
   --white: #ffffff;
   --light-bg: #f7f7f7;
   --border: #e0e0e0;
+}
+
+/* Skip-to-main link — visible only on keyboard focus */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 10000;
+  padding: 12px 24px;
+  background: var(--navy);
+  color: var(--white);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.skip-link:focus {
+  top: 0;
 }
 
 /* =============================================
@@ -91,7 +112,7 @@ body { margin: 0; padding: 0; }
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  color: var(--gold);
+  color: var(--gold-text);
   margin-bottom: 4px;
 }
 
@@ -167,6 +188,18 @@ body { margin: 0; padding: 0; }
   gap: 12px;
 }
 
+/* Form Error Banner */
+.form-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
 /* Total Display */
 .total-display {
   background: var(--navy);
@@ -221,7 +254,9 @@ body { margin: 0; padding: 0; }
 
 /* Focus indicators for accessibility */
 .btn-purchase:focus-visible,
-.btn-home:focus-visible {
+.btn-home:focus-visible,
+.form-group input:focus-visible,
+.form-group select:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
@@ -328,6 +363,11 @@ body { margin: 0; padding: 0; }
   letter-spacing: 0.5px;
 }
 
+.admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -335,6 +375,15 @@ body { margin: 0; padding: 0; }
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.admin-table caption {
+  text-align: left;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+  caption-side: top;
 }
 
 .admin-table th {
