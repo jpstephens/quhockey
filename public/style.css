@@ -1,9 +1,9 @@
 /* MWS Hockey Fundraiser — Page Content Styles */
 /* Header & footer come from the WP shell (fetched dynamically) */
 
-/* Remove default body margin and header wrapper spacing */
+/* Remove default body/html margin and WP admin-bar 32px top offset */
+html { margin-top: 0 !important; }
 body { margin: 0; padding: 0; }
-.elementor-location-header { margin: 0; padding: 0; }
 
 /* Elementor sets the header section to position:absolute (expects JS to convert
    to fixed + add a spacer). Override to sticky so it stays in flow and sticks. */
