@@ -2,7 +2,6 @@ require('dotenv').config();
 
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
 const { createClient } = require('@libsql/client');
 const Stripe = require('stripe');
 
@@ -137,8 +136,7 @@ app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
 
 // Homepage — ticket purchase page wrapped in WP shell
 app.get('/', (req, res) => {
-  const content = fs.readFileSync(path.join(__dirname, '..', 'public', 'content-home.html'), 'utf8');
-  res.send(wrapInWpShell('MWS Hockey Fundraiser — Quinnipiac vs Colgate', content));
+  res.send(wrapInWpShell('MWS Hockey Fundraiser — Quinnipiac vs Colgate', HOME_CONTENT));
 });
 
 // Create Checkout Session
@@ -228,14 +226,12 @@ app.get('/success', async (req, res) => {
     }
   }
 
-  const content = fs.readFileSync(path.join(__dirname, '..', 'public', 'content-success.html'), 'utf8');
-  res.send(wrapInWpShell('Payment Successful — MWS Hockey Fundraiser', content));
+  res.send(wrapInWpShell('Payment Successful — MWS Hockey Fundraiser', SUCCESS_CONTENT));
 });
 
 // Cancel page
 app.get('/cancel', (req, res) => {
-  const content = fs.readFileSync(path.join(__dirname, '..', 'public', 'content-cancel.html'), 'utf8');
-  res.send(wrapInWpShell('Payment Cancelled — MWS Hockey Fundraiser', content));
+  res.send(wrapInWpShell('Payment Cancelled — MWS Hockey Fundraiser', CANCEL_CONTENT));
 });
 
 // Admin dashboard — HTTP Basic Auth
@@ -293,6 +289,120 @@ app.get('/admin', async (req, res) => {
 
   res.send(html);
 });
+
+// Page content templates inlined (Vercel serverless can't access public/ via fs)
+const HOME_CONTENT = `
+<main class="page-content">
+  <div class="left-column">
+    <div class="hero-image">
+      <img src="/images/hero.jpeg" alt="Quinnipiac Hockey Mascot">
+    </div>
+    <div class="event-info">
+      <h1>MWS Hockey Fundraiser</h1>
+      <p>
+        The Michael Williams Scholarship teamed up with Quinnipiac University once again to support this great cause.
+        Join us on Saturday, February 21st as Quinnipiac takes on Colgate in Men's Ice Hockey.
+        All proceeds go to the Michael Williams Scholarship.
+      </p>
+      <div class="event-meta">
+        <div class="meta-item">
+          <span class="meta-label">Date</span>
+          <span class="meta-value">Saturday, Feb 21</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Matchup</span>
+          <span class="meta-value">QU vs Colgate</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Sport</span>
+          <span class="meta-value">Men's Ice Hockey</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Price</span>
+          <span class="meta-value">$50 / ticket</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="right-column">
+    <div class="form-card">
+      <h2>Purchase Tickets</h2>
+      <p class="form-subtitle">Secure your spot at the game</p>
+      <form action="/create-checkout-session" method="POST" id="ticketForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" required placeholder="First name">
+          </div>
+          <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" required placeholder="Last name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
+        </div>
+        <div class="form-group">
+          <label for="num_tickets">Number of Tickets</label>
+          <select id="num_tickets" name="num_tickets">
+            <option value="1">1 ticket</option>
+            <option value="2">2 tickets</option>
+            <option value="3">3 tickets</option>
+            <option value="4">4 tickets</option>
+            <option value="5">5 tickets</option>
+            <option value="6">6 tickets</option>
+            <option value="7">7 tickets</option>
+            <option value="8">8 tickets</option>
+            <option value="9">9 tickets</option>
+            <option value="10">10 tickets</option>
+          </select>
+        </div>
+        <div class="total-display">
+          <span class="total-label">Total</span>
+          <span class="total-amount" id="totalAmount" aria-live="polite">$50.00</span>
+        </div>
+        <button type="submit" class="btn-purchase">Purchase Tickets</button>
+      </form>
+    </div>
+  </div>
+</main>
+<script>
+  const ticketSelect = document.getElementById('num_tickets');
+  const totalDisplay = document.getElementById('totalAmount');
+  ticketSelect.addEventListener('change', function () {
+    const qty = parseInt(this.value);
+    const total = qty * 50;
+    totalDisplay.textContent = '$' + total.toFixed(2);
+  });
+  document.getElementById('ticketForm').addEventListener('submit', function () {
+    const btn = this.querySelector('.btn-purchase');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+  });
+</script>`;
+
+const SUCCESS_CONTENT = `
+<div class="result-page">
+  <div class="icon" role="img" aria-label="Success">&#10003;</div>
+  <h1>You're In!</h1>
+  <p>Your tickets have been purchased successfully. Thank you for supporting the Michael Williams Scholarship!</p>
+  <p>You'll receive a confirmation email with your receipt shortly.</p>
+  <a href="/" class="btn-home">Back to Home</a>
+</div>`;
+
+const CANCEL_CONTENT = `
+<div class="result-page">
+  <div class="icon" role="img" aria-label="Cancelled">&#10007;</div>
+  <h1>Payment Cancelled</h1>
+  <p>Your payment was not completed. No charges were made.</p>
+  <p>If you'd still like to purchase tickets, head back and try again.</p>
+  <a href="/" class="btn-home">Back to Tickets</a>
+</div>`;
 
 // Admin template inlined (avoids fs.readFileSync issues on serverless)
 const ADMIN_TEMPLATE = `<!DOCTYPE html>
