@@ -10,101 +10,166 @@
 
   <header class="site-header">
     <div class="header-inner">
-      <a href="/" class="logo">Michael Williams Scholarship</a>
+      <a href="https://michaelwilliamsscholarship.com" class="site-logo">
+        <img src="https://michaelwilliamsscholarship.com/wp-content/uploads/2021/06/g852.png" alt="Michael Williams Scholarship">
+      </a>
+
+      <button class="mobile-toggle" aria-label="Toggle navigation" aria-expanded="false"
+        onclick="const nav=document.querySelector('.primary-nav');const open=nav.style.display==='flex';nav.style.display=open?'none':'flex';this.setAttribute('aria-expanded',!open);">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav aria-label="Main navigation">
+        <ul class="primary-nav">
+          <li><a href="https://michaelwilliamsscholarship.com/">Home</a></li>
+          <li class="has-dropdown">
+            <a href="#">Events</a>
+            <ul class="dropdown-menu">
+              <li><a href="https://michaelwilliamsscholarship.com/annual-golf-tournament/sponsorship-registration/">Golf Outing</a></li>
+              <li><a href="https://superbowl.michaelwilliamsscholarship.com/">2026 Superbowl Pool</a></li>
+              <li><a href="https://quhockey.michaelwilliamsscholarship.com/" style="color: var(--gold); font-weight: 600;">QU Hockey 2026</a></li>
+              <li><a href="#">Volleyball Tournament 2026</a></li>
+            </ul>
+          </li>
+          <li><a href="https://michaelwilliamsscholarship.com/about-us/">About Us</a></li>
+          <li><a href="https://michaelwilliamsscholarship.com/past-winners/">Past Winners</a></li>
+          <li><a href="https://michaelwilliamsscholarship.com/our-team/">Our Team</a></li>
+          <li class="has-dropdown">
+            <a href="https://michaelwilliamsscholarship.com/mikeys-art-gallery/">Gallery</a>
+            <ul class="dropdown-menu">
+              <li><a href="https://michaelwilliamsscholarship.com/golf-outing-2025/">Golf Outing 2025</a></li>
+              <li><a href="https://michaelwilliamsscholarship.com/golf-outing-2024/">Golf Outing 2024</a></li>
+              <li><a href="https://michaelwilliamsscholarship.com/golf-outing-2023/">Golf Outing 2023</a></li>
+              <li><a href="https://michaelwilliamsscholarship.com/golf-outing-2022/">Golf Outing 2022</a></li>
+              <li><a href="https://michaelwilliamsscholarship.com/mikeys-art-gallery/">Art Gallery</a></li>
+            </ul>
+          </li>
+          <li><a href="https://michaelwilliamsscholarship.com/donate/" class="btn-donate">Donate</a></li>
+        </ul>
+      </nav>
     </div>
   </header>
 
-  <section class="hero">
-    <img src="/images/hero.jpeg" alt="Quinnipiac Hockey Mascot">
-    <div class="hero-overlay">
-      <h1>MWS Hockey Fundraiser</h1>
-      <p>Quinnipiac vs Colgate &mdash; February 21, 2025</p>
-    </div>
-  </section>
+  <main class="page-content">
 
-  <section class="event-details">
-    <h2>Support the Michael Williams Scholarship</h2>
-    <p>
-      The Michael Williams Scholarship teamed up with Quinnipiac University once again to support this great cause.
-      Join us on Saturday, February 21st as Quinnipiac takes on Colgate in Men's Ice Hockey.
-      All proceeds go to the Michael Williams Scholarship.
-    </p>
+    <div class="left-column">
+      <div class="hero-image">
+        <img src="/images/hero.jpeg" alt="Quinnipiac Hockey Mascot">
+      </div>
 
-    <div class="event-meta">
-      <div class="meta-item">
-        <span class="meta-label">Date</span>
-        <span class="meta-value">Saturday, Feb 21</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Matchup</span>
-        <span class="meta-value">Quinnipiac vs Colgate</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Sport</span>
-        <span class="meta-value">Men's Ice Hockey</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Price</span>
-        <span class="meta-value">$50 / ticket</span>
-      </div>
-    </div>
-  </section>
+      <div class="event-info">
+        <h1>MWS Hockey Fundraiser</h1>
+        <p>
+          The Michael Williams Scholarship teamed up with Quinnipiac University once again to support this great cause.
+          Join us on Saturday, February 21st as Quinnipiac takes on Colgate in Men's Ice Hockey.
+          All proceeds go to the Michael Williams Scholarship.
+        </p>
 
-  <section class="form-section">
-    <div class="form-card">
-      <h2>Purchase Tickets</h2>
-      <p class="form-subtitle">Secure your spot at the game</p>
-
-      <form action="/create-checkout-session" method="POST" id="ticketForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="first_name">First Name</label>
-            <input type="text" id="first_name" name="first_name" required placeholder="First name">
+        <div class="event-meta">
+          <div class="meta-item">
+            <span class="meta-label">Date</span>
+            <span class="meta-value">Saturday, Feb 21</span>
           </div>
-          <div class="form-group">
-            <label for="last_name">Last Name</label>
-            <input type="text" id="last_name" name="last_name" required placeholder="Last name">
+          <div class="meta-item">
+            <span class="meta-label">Matchup</span>
+            <span class="meta-value">QU vs Colgate</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Sport</span>
+            <span class="meta-value">Men's Ice Hockey</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Price</span>
+            <span class="meta-value">$50 / ticket</span>
           </div>
         </div>
-
-        <div class="form-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" name="email" required placeholder="you@example.com">
-        </div>
-
-        <div class="form-group">
-          <label for="phone">Phone Number</label>
-          <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
-        </div>
-
-        <div class="form-group">
-          <label for="num_tickets">Number of Tickets</label>
-          <select id="num_tickets" name="num_tickets">
-            <option value="1">1 ticket</option>
-            <option value="2">2 tickets</option>
-            <option value="3">3 tickets</option>
-            <option value="4">4 tickets</option>
-            <option value="5">5 tickets</option>
-            <option value="6">6 tickets</option>
-            <option value="7">7 tickets</option>
-            <option value="8">8 tickets</option>
-            <option value="9">9 tickets</option>
-            <option value="10">10 tickets</option>
-          </select>
-        </div>
-
-        <div class="total-display">
-          <span class="total-label">Total</span>
-          <span class="total-amount" id="totalAmount">$50.00</span>
-        </div>
-
-        <button type="submit" class="btn-purchase">Purchase Tickets</button>
-      </form>
+      </div>
     </div>
-  </section>
+
+    <div class="right-column">
+      <div class="form-card">
+        <h2>Purchase Tickets</h2>
+        <p class="form-subtitle">Secure your spot at the game</p>
+
+        <form action="/create-checkout-session" method="POST" id="ticketForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="first_name">First Name</label>
+              <input type="text" id="first_name" name="first_name" required placeholder="First name">
+            </div>
+            <div class="form-group">
+              <label for="last_name">Last Name</label>
+              <input type="text" id="last_name" name="last_name" required placeholder="Last name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required placeholder="you@example.com">
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
+          </div>
+
+          <div class="form-group">
+            <label for="num_tickets">Number of Tickets</label>
+            <select id="num_tickets" name="num_tickets">
+              <option value="1">1 ticket</option>
+              <option value="2">2 tickets</option>
+              <option value="3">3 tickets</option>
+              <option value="4">4 tickets</option>
+              <option value="5">5 tickets</option>
+              <option value="6">6 tickets</option>
+              <option value="7">7 tickets</option>
+              <option value="8">8 tickets</option>
+              <option value="9">9 tickets</option>
+              <option value="10">10 tickets</option>
+            </select>
+          </div>
+
+          <div class="total-display">
+            <span class="total-label">Total</span>
+            <span class="total-amount" id="totalAmount" aria-live="polite">$50.00</span>
+          </div>
+
+          <button type="submit" class="btn-purchase">Purchase Tickets</button>
+        </form>
+      </div>
+    </div>
+
+  </main>
 
   <footer class="site-footer">
-    <p>&copy; 2025 <a href="https://michaelwilliamsscholarship.com" target="_blank">Michael Williams Scholarship</a>. All rights reserved.</p>
+    <div class="footer-inner">
+      <div class="footer-section">
+        <h3>Contact</h3>
+        <p>
+          <a href="mailto:info@michaelwilliamsscholarship.com">info@michaelwilliamsscholarship.com</a>
+        </p>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul>
+          <li><a href="https://michaelwilliamsscholarship.com/donate/">Donate Now</a></li>
+          <li><a href="https://michaelwilliamsscholarship.com/our-team/">Who We Are</a></li>
+          <li><a href="https://michaelwilliamsscholarship.com/about-us/">What We Do</a></li>
+          <li><a href="https://michaelwilliamsscholarship.com/past-winners/">Past Winners</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Events</h3>
+        <ul>
+          <li><a href="https://michaelwilliamsscholarship.com/annual-golf-tournament/sponsorship-registration/">Golf Outing</a></li>
+          <li><a href="https://superbowl.michaelwilliamsscholarship.com/">2026 Superbowl Pool</a></li>
+          <li><a href="https://quhockey.michaelwilliamsscholarship.com/">QU Hockey 2026</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; All Rights Reserved 2026 501(C)(3) | <a href="https://michaelwilliamsscholarship.com" style="color: var(--gold);">Michael Williams Scholarship</a></p>
+    </div>
   </footer>
 
   <script>
@@ -115,6 +180,13 @@
       const qty = parseInt(this.value);
       const total = qty * 50;
       totalDisplay.textContent = '$' + total.toFixed(2);
+    });
+
+    // Prevent double-click on submit
+    document.getElementById('ticketForm').addEventListener('submit', function () {
+      const btn = this.querySelector('.btn-purchase');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
     });
   </script>
 
