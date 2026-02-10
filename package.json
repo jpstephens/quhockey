@@ -1,0 +1,16 @@
+{
+  "name": "mws-hockey",
+  "version": "1.0.0",
+  "description": "MWS Hockey Fundraiser Ticket Purchase",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "node api/index.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "stripe": "^17.5.0"
+  }
+}
