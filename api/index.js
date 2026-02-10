@@ -89,20 +89,26 @@ if (process.env.TURSO_DATABASE_URL) {
 
   // Create table on startup
   (async () => {
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS registrations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        first_name TEXT NOT NULL,
-        last_name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        num_tickets INTEGER NOT NULL,
-        total_amount INTEGER NOT NULL,
-        stripe_session_id TEXT,
-        payment_status TEXT DEFAULT 'pending',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+    try {
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS registrations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          first_name TEXT NOT NULL,
+          last_name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          num_tickets INTEGER NOT NULL,
+          total_amount INTEGER NOT NULL,
+          stripe_session_id TEXT,
+          payment_status TEXT DEFAULT 'pending',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('Turso DB table ready');
+    } catch (err) {
+      console.error('Turso DB init failed:', err.message);
+      db = null; // Disable DB so pages still render
+    }
   })();
 }
 
@@ -126,10 +132,12 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res)
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    await db.execute({
-      sql: 'UPDATE registrations SET payment_status = ? WHERE stripe_session_id = ?',
-      args: ['paid', session.id],
-    });
+    if (db) {
+      await db.execute({
+        sql: 'UPDATE registrations SET payment_status = ? WHERE stripe_session_id = ?',
+        args: ['paid', session.id],
+      });
+    }
     console.log(`Payment confirmed via webhook for session ${session.id}`);
   }
 
@@ -166,12 +174,15 @@ app.post('/create-checkout-session', async (req, res) => {
     const totalAmount = tickets * TICKET_PRICE;
 
     // Save registration as pending
-    const result = await db.execute({
-      sql: `INSERT INTO registrations (first_name, last_name, email, phone, num_tickets, total_amount, payment_status)
-            VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
-      args: [first_name, last_name, email, phone, tickets, totalAmount],
-    });
-    const registrationId = result.lastInsertRowid;
+    let registrationId = null;
+    if (db) {
+      const result = await db.execute({
+        sql: `INSERT INTO registrations (first_name, last_name, email, phone, num_tickets, total_amount, payment_status)
+              VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+        args: [first_name, last_name, email, phone, tickets, totalAmount],
+      });
+      registrationId = result.lastInsertRowid;
+    }
 
     // Build base URL — trust X-Forwarded headers on Vercel
     const proto = req.headers['x-forwarded-proto'] || req.protocol;
@@ -198,17 +209,19 @@ app.post('/create-checkout-session', async (req, res) => {
       success_url: `${proto}://${host}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${proto}://${host}/cancel`,
       metadata: {
-        registration_id: registrationId.toString(),
+        registration_id: registrationId ? registrationId.toString() : '',
         first_name,
         last_name,
       },
     });
 
     // Update registration with Stripe session ID
-    await db.execute({
-      sql: 'UPDATE registrations SET stripe_session_id = ? WHERE id = ?',
-      args: [session.id, Number(registrationId)],
-    });
+    if (db && registrationId) {
+      await db.execute({
+        sql: 'UPDATE registrations SET stripe_session_id = ? WHERE id = ?',
+        args: [session.id, Number(registrationId)],
+      });
+    }
 
     res.redirect(303, session.url);
   } catch (err) {
@@ -224,7 +237,7 @@ app.get('/success', async (req, res) => {
   if (sessionId) {
     try {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      if (session.payment_status === 'paid') {
+      if (session.payment_status === 'paid' && db) {
         await db.execute({
           sql: 'UPDATE registrations SET payment_status = ? WHERE stripe_session_id = ?',
           args: ['paid', sessionId],
@@ -265,6 +278,9 @@ app.get('/admin', async (req, res) => {
   }
 
   // Fetch all registrations
+  if (!db) {
+    return res.status(503).send('Database not available. Please try again later.');
+  }
   const result = await db.execute('SELECT * FROM registrations ORDER BY created_at DESC');
   const registrations = result.rows;
 
